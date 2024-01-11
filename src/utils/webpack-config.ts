@@ -28,8 +28,8 @@ export type IOptions<T = unknown> = {
   outCssFileName?: string;
   externals?: any[];
   target?: webpack.Configuration['target'];
-  libraryTarget?: webpack.LibraryTarget;
-  devtool?: webpack.Options.Devtool;
+  libraryTarget?: any;
+  devtool?: any;
 } & T;
 
 const defaultSourcePathToBeResolve = [
@@ -160,10 +160,10 @@ export const getWebpackConfig = async (opts: IOptions) => {
     publicPath += '/';
   }
 
-  let { devtool } = opts;
+  let { devtool } = opts as any;
 
   if (devtool === undefined) {
-    devtool = opts.mode === 'development' ? 'cheap-module-eval-source-map' : false;
+    devtool = opts.mode === 'development' ? 'cheap-module-source-map' : false;
   }
 
   const config: webpack.Configuration = {
@@ -181,10 +181,16 @@ export const getWebpackConfig = async (opts: IOptions) => {
       hotUpdateMainFilename: 'hot-update.[hash].json',
       hashDigestLength: 4,
       globalObject: "(typeof self !== 'undefined' ? self : this)",
-      libraryTarget: opts.libraryTarget || 'var',
+      // libraryTarget: opts.libraryTarget || 'var',
     },
     module: {
       rules: [
+        {
+          test: /\.m?js/,
+          resolve: {
+            fullySpecified: false,
+          },
+        },
         {
           test: /\.worker\.tsx?$/,
           use: [
@@ -305,6 +311,7 @@ export const getWebpackConfig = async (opts: IOptions) => {
         '.ts',
         '.md',
         '.mdx',
+        '.mjs',
         '.scss',
         '.less',
         '.css',
@@ -324,13 +331,13 @@ export const getWebpackConfig = async (opts: IOptions) => {
     },
     plugins: [],
     optimization: {
-      namedChunks: false,
+      // namedChunks: false,
       splitChunks: {
         cacheGroups: {
           default: false,
         },
       },
-    },
+    } as any,
     stats,
   };
 
@@ -370,7 +377,7 @@ export const getWebpackConfig = async (opts: IOptions) => {
     config.optimization.removeAvailableModules = false;
     config.optimization.removeEmptyChunks = false;
     config.optimization.splitChunks = false;
-    config.output.pathinfo = false;
+    // config.output.pathinfo = false;
   }
 
   return plugin.buildConfigPipes.reduce(async (newConfig, fn) => {

@@ -35,7 +35,7 @@ export const runWebpack = async (opts: IOptions<IExtraOptions>): Promise<any> =>
   webpackConfig.plugins.push(new WebpackBar());
 
   if (yargs.argv.measureSpeed) {
-    webpackConfig = smp.wrap(webpackConfig);
+    webpackConfig = smp.wrap(webpackConfig as any) as any;
   }
 
   const compiler = webpack(webpackConfig);

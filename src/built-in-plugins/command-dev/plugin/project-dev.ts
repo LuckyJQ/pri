@@ -326,7 +326,7 @@ function debugProjectPrepare(dashboardClientPort: number) {
 
       config.plugins.push(
         new webpack.DllReferencePlugin({
-          context: '.',
+          context: __dirname,
           // eslint-disable-next-line import/no-dynamic-require,global-require
           manifest: require(path.join(dllOutPath, dllMainfestName)),
         }),

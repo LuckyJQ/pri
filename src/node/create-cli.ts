@@ -24,6 +24,7 @@ import { logFatal, spinner } from '../utils/log';
 // }
 
 export async function createCli(opts?: { pluginIncludeRoots: string[] }) {
+  console.log('---------yichuantest--------------');
   await checkEnvironment();
 
   let preSelectPackage = yargs.argv.package as string;

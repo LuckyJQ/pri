@@ -8,7 +8,7 @@ const { globalState } = priStore;
 
 export const history = createBrowserHistory({
   basename: globalState.sourceConfig.baseHref,
-});
+} as any);
 
 export const { isDevelopment } = globalState;
 

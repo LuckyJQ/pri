@@ -94,10 +94,13 @@ export const runWebpackDevServer = async (
 
   const defaultWebpackDevServerConfig: WebpackDevServer.Configuration = {
     host: globalState.sourceConfig.host,
-    hot: opts.hot,
-    hotOnly: opts.hot,
-    publicPath: opts.publicPath,
-    before: (app: any) => {
+    port: opts.devServerPort,
+    https: _.defaults({ value: opts.https }, { value: globalState.sourceConfig.useHttps }).value,
+    // hot: opts.hot,
+    // hotOnly: opts.hot,
+    hot: 'only',
+    onBeforeSetupMiddleware: (devServer: any) => {
+      const { app } = devServer;
       app.use((req: any, res: any, next: any) => {
         // CORS
         res.setHeader('Access-Control-Allow-Origin', '*');
@@ -112,34 +115,43 @@ export const runWebpackDevServer = async (
     ...(!opts.jsOnly && {
       historyApiFallback: { rewrites: [{ from: '/', to: normalizePath(path.join(opts.publicPath, 'index.html')) }] },
     }),
-    https: _.defaults({ value: opts.https }, { value: globalState.sourceConfig.useHttps }).value,
-    overlay: { warnings: false, errors: true },
-    stats,
-    watchOptions: {
-      ...(!globalState.sourceConfig.watchNodeModules && {
-        ignored: /node_modules/,
-      }),
+    client: {
+      overlay: { warnings: false, errors: true },
+      logging: 'warn',
     },
+    devMiddleware: {
+      stats,
+    },
+    // watchOptions: {
+    //   ...(!globalState.sourceConfig.watchNodeModules && {
+    //     ignored: /node_modules/,
+    //   }),
+    // },
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
       'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization, x-csrf-token',
     },
-    clientLogLevel: 'warn',
-    disableHostCheck: true,
-    port: opts.devServerPort,
-    contentBase: opts.contentBase,
-  } as any;
-  const webpackDevServerConfig = (await plugin.devServerConfigPipes.reduce(async (newConfig, fn) => {
+    // disableHostCheck: true,
+    static: {
+      publicPath: opts.publicPath,
+      directory: opts.contentBase,
+      watch: {
+        ignored: globalState.sourceConfig.watchNodeModules ? undefined : /node_modules/,
+      },
+    },
+  };
+  const webpackDevServerConfig = await plugin.devServerConfigPipes.reduce(async (newConfig, fn) => {
     return fn(await newConfig);
-  }, Promise.resolve(defaultWebpackDevServerConfig))) as any;
+  }, Promise.resolve(defaultWebpackDevServerConfig));
 
-  WebpackDevServer.addDevServerEntrypoints(webpackConfig as any, webpackDevServerConfig);
+  // 4.x版本已经废弃addDevServerEntrypoints https://github.com/webpack/webpack-dev-server/blob/master/migration-v4.md
+  // WebpackDevServer.addDevServerEntrypoints(webpackConfig as any, webpackDevServerConfig);
 
-  if (yargs.argv.measureSpeed) {
-    webpackConfig = smp.wrap(webpackConfig);
-  }
+  // if (yargs.argv.measureSpeed) {
+  //   webpackConfig = smp.wrap(webpackConfig);
+  // }
 
   if (configWrapper) {
     webpackConfig = configWrapper(webpackConfig);
@@ -147,7 +159,7 @@ export const runWebpackDevServer = async (
 
   const compiler = webpack(webpackConfig);
 
-  const devServer = new WebpackDevServer(compiler as any, webpackDevServerConfig);
+  const devServer = new WebpackDevServer(webpackDevServerConfig, compiler);
   const { port, host, https } = webpackDevServerConfig;
 
   devServer.listen(port, host, () => {
