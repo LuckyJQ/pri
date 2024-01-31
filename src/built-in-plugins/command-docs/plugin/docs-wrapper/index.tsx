@@ -98,7 +98,7 @@ const DocsWithRouter = withRouter(Docs);
 
 const App: React.FC = props => {
   return (
-    // @ts-ignore
+    // @ts-expect-error 忽略忽略
     <HashRouter>
       <DocsWithRouter {...props} />
     </HashRouter>

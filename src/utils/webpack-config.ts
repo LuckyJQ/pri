@@ -49,7 +49,6 @@ const stats = {
   entrypoints: false,
   hash: false,
 };
-
 const tsLoaderConfig = {
   include: plugin.buildConfigJsLoaderIncludePipes.reduce((options, fn) => {
     return fn(options);
@@ -163,7 +162,7 @@ export const getWebpackConfig = async (opts: IOptions) => {
   let { devtool } = opts as any;
 
   if (devtool === undefined) {
-    devtool = opts.mode === 'development' ? 'cheap-module-source-map' : false;
+    devtool = opts.mode === 'development' ? 'eval-cheap-module-source-map' : false;
   }
 
   const config: webpack.Configuration = {
@@ -172,6 +171,9 @@ export const getWebpackConfig = async (opts: IOptions) => {
     devtool,
     externals: opts.externals,
     target: opts.target || 'web',
+    cache: {
+      type: 'filesystem', // 使用文件缓存
+    },
     output: {
       path: distDir,
       filename: outFileName,
@@ -181,7 +183,10 @@ export const getWebpackConfig = async (opts: IOptions) => {
       hotUpdateMainFilename: 'hot-update.[hash].json',
       hashDigestLength: 4,
       globalObject: "(typeof self !== 'undefined' ? self : this)",
-      // libraryTarget: opts.libraryTarget || 'var',
+      // library: {
+      //   type: opts.libraryTarget || 'var',
+      // },
+      // libraryTarget:opts.libraryTarget || 'var',
     },
     module: {
       rules: [
@@ -331,7 +336,7 @@ export const getWebpackConfig = async (opts: IOptions) => {
     },
     plugins: [],
     optimization: {
-      // namedChunks: false,
+      // chunkIds: 'named',
       splitChunks: {
         cacheGroups: {
           default: false,
@@ -377,7 +382,7 @@ export const getWebpackConfig = async (opts: IOptions) => {
     config.optimization.removeAvailableModules = false;
     config.optimization.removeEmptyChunks = false;
     config.optimization.splitChunks = false;
-    // config.output.pathinfo = false;
+    config.output.pathinfo = false;
   }
 
   return plugin.buildConfigPipes.reduce(async (newConfig, fn) => {

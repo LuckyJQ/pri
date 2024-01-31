@@ -11,6 +11,7 @@ import * as CircularDependencyPlugin from 'circular-dependency-plugin';
 import * as _ from 'lodash';
 import * as WebpackDevServer from 'webpack-dev-server';
 import * as SpeedMeasurePlugin from 'speed-measure-webpack-plugin';
+import * as ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import * as ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import { globalState } from './global-state';
 import { plugin } from './plugins';
@@ -53,7 +54,7 @@ export const runWebpackDevServer = async (
     webpackConfig = await opts.pipeConfig(webpackConfig);
   }
 
-  webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
+  // webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
 
   webpackConfig.plugins.push(new WebpackBar());
 
@@ -95,11 +96,29 @@ export const runWebpackDevServer = async (
   const defaultWebpackDevServerConfig: WebpackDevServer.Configuration = {
     host: globalState.sourceConfig.host,
     port: opts.devServerPort,
+    allowedHosts: 'all',
     https: _.defaults({ value: opts.https }, { value: globalState.sourceConfig.useHttps }).value,
     // hot: opts.hot,
     // hotOnly: opts.hot,
-    hot: 'only',
-    onBeforeSetupMiddleware: (devServer: any) => {
+    hot: true,
+    // hotOnly: false,
+    // onBeforeSetupMiddleware: (devServer: any) => {
+    //   const { app } = devServer;
+    //   app.use((req: any, res: any, next: any) => {
+    //     // CORS
+    //     res.setHeader('Access-Control-Allow-Origin', '*');
+    //     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    //     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    //     res.setHeader('Access-Control-Allow-Credentials', true);
+    //     next();
+    //   });
+    //   app.use('/', express.static(path.join(globalState.projectRootPath, tempPath.dir, 'static')));
+    // },
+    setupMiddlewares: (middlewares, devServer) => {
+      if (!devServer.app) {
+        throw new Error('webpack-dev-server is not initialized');
+      }
+
       const { app } = devServer;
       app.use((req: any, res: any, next: any) => {
         // CORS
@@ -110,6 +129,7 @@ export const runWebpackDevServer = async (
         next();
       });
       app.use('/', express.static(path.join(globalState.projectRootPath, tempPath.dir, 'static')));
+      return middlewares;
     },
     compress: true,
     ...(!opts.jsOnly && {
@@ -121,6 +141,7 @@ export const runWebpackDevServer = async (
     },
     devMiddleware: {
       stats,
+      // writeToDisk: true,
     },
     // watchOptions: {
     //   ...(!globalState.sourceConfig.watchNodeModules && {
