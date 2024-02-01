@@ -54,7 +54,7 @@ export const runWebpackDevServer = async (
     webpackConfig = await opts.pipeConfig(webpackConfig);
   }
 
-  // webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
+  webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
 
   webpackConfig.plugins.push(new WebpackBar());
 

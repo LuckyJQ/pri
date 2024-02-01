@@ -1,6 +1,6 @@
 {
   "name": "pri",
-  "version": "4.4.1",
+  "version": "4.4.0",
   "types": "src/node/index.ts",
   "main": "built/node/index.js",
   "scripts": {
@@ -160,7 +160,7 @@
     "webpack-node-externals": "1.7.2",
     "webpack-sources": "3.2.3",
     "webpackbar": "5.0.2",
-    "worker-loader": "3.0.8",
+    "worker-loader": "^2.0.0",
     "yargs": "15.0.2"
   }
 }
