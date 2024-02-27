@@ -1,9 +1,28 @@
 import * as path from 'path';
 import * as webpack from 'webpack';
 import * as WebpackBar from 'webpackbar';
+// import FBIEngineComponentBuildPlugin from '@alife/fbi-engine-component-build/buildPlugin';
 import { PRI_PACKAGE_NAME } from './constants';
 import { globalState } from './global-state';
 import { plugin } from './plugins';
+
+class FBIEngineComponentBuildPlugin {
+  apply(compiler: any) {
+    compiler.resolverFactory.hooks.resolver.for('normal').tap('name', (resolver: any) => {
+      resolver.hooks.resolveStep.tap('MyPlugin', (hook: any, request: any) => {
+        // 修改目标文件名
+        if (
+          request.path &&
+          request.path.match(/@alife/) &&
+          request.request &&
+          request.request.match(/@babel\/runtime\/.*\.js/)
+        ) {
+          request.request = request.request.replace(/(\.js)$/, '');
+        }
+      });
+    });
+  }
+}
 
 export interface IDllOptions {
   dllOutPath: string;
@@ -32,6 +51,7 @@ const vendors = [
 ];
 
 export const getWebpackDllConfig = (opts: IDllOptions) => {
+  console.log('dll config run---------');
   const result: webpack.Configuration = {
     mode: 'development',
 
@@ -53,6 +73,7 @@ export const getWebpackDllConfig = (opts: IDllOptions) => {
         name: 'library',
       }),
       new WebpackBar(),
+      new FBIEngineComponentBuildPlugin(),
     ],
 
     module: {
@@ -61,6 +82,23 @@ export const getWebpackDllConfig = (opts: IDllOptions) => {
           test: /\.css/,
           use: ['style-loader', 'css-loader'],
         },
+        {
+          test: /\.m?js/,
+          resolve: {
+            fullySpecified: false,
+          },
+        },
+        // {
+        //   test: /\.worker\.tsx?$/,
+        //   use: [
+        //     {
+        //       loader: 'worker-loader',
+        //       options: {
+        //         inline: true,
+        //       },
+        //     },
+        //   ],
+        // },
       ],
     },
 

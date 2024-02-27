@@ -44,6 +44,24 @@ const stats = {
   children: false,
 };
 
+class FBIEngineComponentBuildPlugin {
+  apply(compiler: any) {
+    compiler.resolverFactory.hooks.resolver.for('normal').tap('name', (resolver: any) => {
+      resolver.hooks.resolveStep.tap('MyPlugin', (hook: any, request: any) => {
+        // 修改目标文件名
+        if (
+          request.path &&
+          request.path.match(/@alife/) &&
+          request.request &&
+          request.request.match(/@babel\/runtime\/.*\.js/)
+        ) {
+          request.request = request.request.replace(/(\.js)$/, '');
+        }
+      });
+    });
+  }
+}
+
 export const runWebpackDevServer = async (
   opts: IOptions<IExtraOptions>,
   configWrapper?: (webpackConfig: webpack.Configuration) => webpack.Configuration,
@@ -54,7 +72,7 @@ export const runWebpackDevServer = async (
     webpackConfig = await opts.pipeConfig(webpackConfig);
   }
 
-  webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
+  webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin(), new FBIEngineComponentBuildPlugin());
 
   webpackConfig.plugins.push(new WebpackBar());
 
@@ -136,7 +154,20 @@ export const runWebpackDevServer = async (
       historyApiFallback: { rewrites: [{ from: '/', to: normalizePath(path.join(opts.publicPath, 'index.html')) }] },
     }),
     client: {
-      overlay: { warnings: false, errors: true },
+      overlay: {
+        warnings: false,
+        errors: true,
+        runtimeErrors: error => {
+          const ignoreErrors = [
+            'ResizeObserver loop limit exceeded',
+            'ResizeObserver loop completed with undelivered notifications.',
+          ];
+          if (ignoreErrors.includes(error.message)) {
+            return false;
+          }
+          return true;
+        },
+      },
       logging: 'warn',
     },
     devMiddleware: {

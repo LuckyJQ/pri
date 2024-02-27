@@ -193,21 +193,21 @@ export const getWebpackConfig = async (opts: IOptions) => {
         {
           test: /\.m?js/,
           resolve: {
-            fullySpecified: false,
+            fullySpecified: false, // https://webpack.js.org/configuration/module/#resolvefullyspecified
           },
         },
-        {
-          test: /\.worker\.tsx?$/,
-          use: [
-            {
-              loader: 'worker-loader',
-              options: {
-                inline: true,
-              },
-            },
-          ],
-          ...tsLoaderConfig,
-        },
+        // {
+        //   test: /\.worker\.tsx?$/,
+        //   use: [
+        //     {
+        //       loader: 'worker-loader',
+        //       options: {
+        //         inline: true,
+        //       },
+        //     },
+        //   ],
+        //   ...tsLoaderConfig,
+        // },
         {
           test: /\.tsx?$/,
           use: [babelLoader],
@@ -329,6 +329,7 @@ export const getWebpackConfig = async (opts: IOptions) => {
         'eot',
         'ttf',
         'svg',
+        '...',
       ],
     },
     resolveLoader: {

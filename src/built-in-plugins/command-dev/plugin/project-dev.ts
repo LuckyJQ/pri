@@ -103,7 +103,7 @@ async function debugProject(options?: any) {
   });
 
   if (!pri.sourceConfig.disableDllWhenDev) {
-    await bundleDlls({ dllOutPath, dllFileName, dllMainfestName });
+    await bundleDlls({ dllOutPath, dllFileName, dllMainfestName, pipeConfig });
   }
 
   if (globalState.sourceConfig.useHttps) {

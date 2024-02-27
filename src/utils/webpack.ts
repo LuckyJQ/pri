@@ -70,6 +70,7 @@ export const runWebpackDll = async (opts: IDllOptions): Promise<any> => {
 
   if (opts.pipeConfig) {
     webpackConfig = await opts.pipeConfig(webpackConfig);
+    console.log('--======---webpackConfig plugins', webpackConfig?.plugins);
   }
 
   const compiler = webpack(webpackConfig);
